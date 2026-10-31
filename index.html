@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>☠ Deobfuscator Hub ☠</title>
+<style>
+  :root {
+    --bg:#0a0606; --panel:#150a0a; --panel-2:#1f0d0d;
+    --border:#3a1515; --border-hi:#6b1e1e;
+    --text:#e8d5d5; --dim:#8a6a6a;
+    --blood:#b81c1c; --blood-hi:#ff2b2b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(circle at 20% 0%, #2a0808 0%, transparent 50%),
+      radial-gradient(circle at 80% 100%, #1a0303 0%, transparent 50%),
+      var(--bg);
+    color:var(--text);
+    font-family:"Segoe UI","Noto Kufi Arabic",system-ui,sans-serif;
+    min-height:100vh; overflow:hidden;
+  }
+  .app{display:grid;grid-template-columns:280px 1fr;height:100vh}
+
+  /* Sidebar */
+  .sidebar{
+    background:linear-gradient(180deg,#1a0808,#0d0404);
+    border-left:1px solid var(--border);
+    padding:16px; overflow-y:auto;
+    box-shadow:inset 0 0 40px rgba(184,28,28,.1);
+  }
+  .title{
+    font-size:18px; font-weight:700; text-align:center;
+    margin-bottom:20px; padding-bottom:12px;
+    border-bottom:1px solid var(--border);
+    background:linear-gradient(90deg,#ff2b2b,#b81c1c,#ff2b2b);
+    -webkit-background-clip:text; background-clip:text;
+    color:transparent;
+    text-shadow:0 0 20px rgba(255,43,43,.3);
+  }
+  .tools{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .tool{
+    background:var(--panel-2); border:1px solid var(--border);
+    border-radius:6px; padding:10px 6px;
+    text-align:center; font-size:11px; cursor:pointer;
+    transition:all .15s; user-select:none; line-height:1.3;
+  }
+  .tool:hover{border-color:var(--border-hi); background:#2a0f0f}
+  .tool.selected{
+    background:linear-gradient(135deg,#4a0808,#2a0404);
+    border-color:var(--blood-hi);
+    box-shadow:0 0 12px rgba(255,43,43,.4), inset 0 0 20px rgba(255,43,43,.1);
+    color:#ffb8b8;
+  }
+  .tool.auto{
+    grid-column:span 2;
+    background:linear-gradient(135deg,#3a0606,#1a0303);
+    border-color:#8a1e1e; font-weight:600;
+  }
+  .tool.auto.selected{background:linear-gradient(135deg,#7a0e0e,#4a0808)}
+
+  /* Main */
+  .main{display:flex;flex-direction:column;padding:16px;gap:12px;overflow:hidden}
+  .config{display:grid;grid-template-columns:2fr 2fr;gap:8px}
+  .config input{
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:6px; padding:8px 12px;
+    color:var(--text); font-size:12px;
+    font-family:monospace; outline:none;
+  }
+  .config input:focus{border-color:var(--blood-hi)}
+  .panel{
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:8px; padding:12px;
+    box-shadow:inset 0 0 30px rgba(184,28,28,.05);
+  }
+  .panel label{
+    font-size:12px; color:var(--dim);
+    display:block; margin-bottom:8px;
+  }
+  textarea{
+    width:100%; min-height:200px;
+    background:var(--panel-2); border:1px solid var(--border);
+    border-radius:6px; padding:10px; color:var(--text);
+    font-family:"Consolas","Courier New",monospace;
+    font-size:13px; outline:none; resize:vertical;
+    line-height:1.5;
+  }
+  textarea:focus{border-color:var(--blood-hi)}
+  .row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center}
+  button,.upload-btn{
+    background:var(--panel-2); border:1px solid var(--border);
+    color:var(--text); padding:10px 16px;
+    border-radius:6px; font-size:13px; cursor:pointer;
+    font-family:inherit; transition:all .15s;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  button:hover,.upload-btn:hover{border-color:var(--border-hi); background:#2a0f0f}
+  button.primary{
+    background:linear-gradient(135deg,var(--blood),#8a1010);
+    border-color:var(--blood-hi); font-weight:600;
+    box-shadow:0 0 20px rgba(184,28,28,.3);
+  }
+  button.primary:hover{
+    background:linear-gradient(135deg,var(--blood-hi),#b81c1c);
+    box-shadow:0 0 30px rgba(255,43,43,.5);
+  }
+  button.primary:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+  button.spy{
+    background:linear-gradient(135deg,#2a0808,#1a0404);
+    border-color:#6b1e1e;
+  }
+  button.spy:hover{border-color:var(--blood-hi); box-shadow:0 0 16px rgba(255,43,43,.3)}
+  .selected-info{margin-right:auto;font-size:12px;color:var(--dim)}
+  .selected-info b{color:#ffb8b8}
+
+  /* Output */
+  .output{
+    flex:1; background:var(--panel); border:1px solid var(--border);
+    border-radius:8px; display:flex; flex-direction:column;
+    overflow:hidden; min-height:200px;
+  }
+  .output-header{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 14px; background:var(--panel-2);
+    border-bottom:1px solid var(--border);
+    font-size:13px; font-weight:600;
+  }
+  .output-header .clear{padding:4px 10px; font-size:11px}
+  .output pre{
+    flex:1; padding:14px; overflow:auto;
+    font-family:"Consolas","Courier New",monospace;
+    font-size:12px; line-height:1.6;
+    white-space:pre-wrap; word-break:break-word;
+    direction:ltr; text-align:left;
+    color:#c9b8b8;
+  }
+  .url-item{
+    display:block; padding:6px 8px; margin-bottom:4px;
+    background:var(--panel-2); border-radius:4px;
+    border-left:2px solid var(--blood-hi);
+    color:#ffb8b8; font-size:12px; word-break:break-all;
+    cursor:pointer;
+  }
+  .url-item:hover{background:#2a0f0f}
+  .status{
+    padding:8px 14px; font-size:11px; color:var(--dim);
+    border-top:1px solid var(--border);
+    background:var(--panel-2);
+  }
+  .status.error{color:#ff6b6b}
+  .status.ok{color:#ff9f9f}
+
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:var(--bg)}
+  ::-webkit-scrollbar-thumb{background:#4a1515;border-radius:4px}
+  ::-webkit-scrollbar-thumb:hover{background:#6b1e1e}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="title">☠ DEOBFUSCATOR HUB ☠</div>
+    <div class="tools" id="toolsGrid"></div>
+  </aside>
+  <main class="main">
+    <div class="config">
+      <input id="apiUrl" placeholder="API URL (https://...onrender.com)">
+      <input id="apiKey" placeholder="API Key">
+    </div>
+    <div class="panel">
+      <label>الكود المشفر</label>
+      <textarea id="inputCode" placeholder="ألصق الكود المشفر هنا..."></textarea>
+      <div class="row">
+        <label class="upload-btn">
+          📂 رفع ملف
+          <input type="file" id="fileInput" hidden>
+        </label>
+        <button class="spy" id="spyBtn">🕵️ HttpSpy</button>
+        <button class="primary" id="decodeBtn">⚡ فك التشفير</button>
+        <div class="selected-info">الأداة: <b id="selectedName">—</b></div>
+      </div>
+    </div>
+    <div class="output">
+      <div class="output-header">
+        <span id="outputTitle">النتيجة</span>
+        <button class="clear" id="clearBtn">مسح</button>
+      </div>
+      <pre id="output"></pre>
+      <div class="status" id="status">جاهز</div>
+    </div>
+  </main>
+</div>
+<script>
+  const TOOLS = [
+    { name:'Luraph v14.1',  key:'luraph',   version:'v14.1' },
+    { name:'Luraph v14.9',  key:'luraph',   version:'v14.9' },
+    { name:'Luraph v15',    key:'luraph',   version:'v15' },
+    { name:'Luraph v17',    key:'luraph',   version:'v17' },
+    { name:'MoonVeil v1.9', key:'moonveil', version:'v1.9' },
+    { name:'MoonVeil v2',   key:'moonveil', version:'v2' },
+    { name:'MoonVeil v2.1', key:'moonveil', version:'v2.1' },
+    { name:'Moonsec v3',    key:'moonsec',  version:'v3' },
+    { name:'Auto Deob',     key:'auto',     version:'', auto:true },
+  ];
+
+  let selected = null;
+  let lastResult = '';
+
+  const grid = document.getElementById('toolsGrid');
+  TOOLS.forEach((t, i) => {
+    const el = document.createElement('div');
+    el.className = 'tool' + (t.auto ? ' auto' : '');
+    el.textContent = t.name;
+    el.onclick = () => {
+      document.querySelectorAll('.tool').forEach(x => x.classList.remove('selected'));
+      el.classList.add('selected');
+      selected = t;
+      document.getElementById('selectedName').textContent = t.name;
+    };
+    grid.appendChild(el);
+  });
+
+  const apiUrlEl = document.getElementById('apiUrl');
+  const apiKeyEl = document.getElementById('apiKey');
+  apiUrlEl.value = localStorage.getItem('deob_api_url') || '';
+  apiKeyEl.value = localStorage.getItem('deob_api_key') || '';
+  apiUrlEl.onchange = () => localStorage.setItem('deob_api_url', apiUrlEl.value);
+  apiKeyEl.onchange = () => localStorage.setItem('deob_api_key', apiKeyEl.value);
+
+  document.getElementById('fileInput').onchange = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => { document.getElementById('inputCode').value = r.result; };
+    r.readAsText(f);
+  };
+
+  const statusEl = document.getElementById('status');
+  const outputEl = document.getElementById('output');
+  const outputTitleEl = document.getElementById('outputTitle');
+  const decodeBtn = document.getElementById('decodeBtn');
+
+  function setStatus(msg, cls = '') {
+    statusEl.textContent = msg;
+    statusEl.className = 'status ' + cls;
+  }
+
+  function checkConfig() {
+    if (!apiUrlEl.value) { setStatus('أدخل API URL أولاً', 'error'); return false; }
+    if (!apiKeyEl.value) { setStatus('أدخل API Key أولاً', 'error'); return false; }
+    return true;
+  }
+
+  decodeBtn.onclick = async () => {
+    if (!selected) { setStatus('اختر أداة أولاً', 'error'); return; }
+    const code = document.getElementById('inputCode').value.trim();
+    if (!code) { setStatus('ألصق الكود المشفر', 'error'); return; }
+    if (!checkConfig()) return;
+
+    setStatus('جاري الفك... (السيرفر قد ياخذ 30-60 ثانية لو نايم)');
+    decodeBtn.disabled = true;
+    outputTitleEl.textContent = 'النتيجة';
+    outputEl.innerHTML = '';
+    lastResult = '';
+
+    try {
+      const res = await fetch(apiUrlEl.value.replace(/\/$/, '') + '/api/deob', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': apiKeyEl.value,
+        },
+        body: JSON.stringify({ code, tool: selected.key, version: selected.version }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'server error');
+      lastResult = data.result || '';
+      outputEl.textContent = lastResult;
+      setStatus('تم — النوع المكتشف: ' + (data.detected || '?'), 'ok');
+    } catch (e) {
+      setStatus('خطأ: ' + e.message, 'error');
+    } finally {
+      decodeBtn.disabled = false;
+    }
+  };
+
+  document.getElementById('spyBtn').onclick = () => {
+    if (!lastResult) {
+      setStatus('لا نتيجة سابقة — فكك سكربت أولاً', 'error');
+      return;
+    }
+    document.getElementById('inputCode').value = '';
+    outputEl.innerHTML = '';
+    outputTitleEl.textContent = '🕵️ الروابط المكتشفة';
+
+    const urls = [...new Set(lastResult.match(/https?:\/\/[^\s"'`<>)\]]+/g) || [])];
+    if (urls.length === 0) {
+      outputEl.textContent = 'لا روابط في الناتج.';
+      setStatus('لا روابط', 'error');
+      return;
+    }
+    urls.forEach(u => {
+      const div = document.createElement('div');
+      div.className = 'url-item';
+      div.textContent = u;
+      div.onclick = () => { navigator.clipboard.writeText(u); setStatus('تم النسخ', 'ok'); };
+      outputEl.appendChild(div);
+    });
+    setStatus(urls.length + ' رابط — اضغط على أي رابط لنسخه', 'ok');
+  };
+
+  document.getElementById('clearBtn').onclick = () => {
+    document.getElementById('inputCode').value = '';
+    outputEl.innerHTML = '';
+    outputTitleEl.textContent = 'النتيجة';
+    lastResult = '';
+    setStatus('تم المسح');
+  };
+</script>
+</body>
+</html>
